@@ -5,7 +5,7 @@ import { CustomButton } from "../../components/Button";
 import { Footer } from "../../components/Footer";
 
 export function Preview() {
-  const isAdmin = false;  //Lógica para verificar se é admin;
+  const isAdmin = true;  //Lógica para verificar se é admin;
 
 
   let totalPedido = 25.00;
@@ -21,7 +21,7 @@ export function Preview() {
 
             <div className="flex flex-col items-center w-2/3  gap-5 lg:w-1/2 lg:gap-9 lg:items-start">
               <h1 className="text-xl xs:text-2xl sm:text-4xl lg:text-5xl lg:text-start font-semibold">Salada Ravanello</h1>
-              <p className="text-center text-xs xs:text-sm lg:text-2xl lg:text-start">Rabanetes, folhas verdes e molho agridoce salpicados com gergelim. O pão naan dá um toque especial.</p>
+              <p className="text-justify text-xs xs:text-sm lg:text-xl lg:text-justify">Rabanetes, folhas verdes e molho agridoce salpicados com gergelim. O pão naan dá um toque especial.</p>
               <section className="flex flex-wrap">
                 <div className="flex flex-row items-center justify-center gap-2 bg-Dark1000 rounded-lg p-2 -mt-3">
                   <p className="text-xs ">ingredientes</p>

@@ -27,6 +27,7 @@ module.exports = {
         Tomato100:'#750310',
         Tomato200:'#92000E',
         Tomato300:'#AB222E',
+        Tomato400:'#AB4D55',
 
         Cake200:'#82F3FF',
 
