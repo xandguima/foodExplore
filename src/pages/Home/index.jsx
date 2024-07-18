@@ -1,111 +1,75 @@
-import prato from '../../assets/image.png';
-import logoFooter from '../../assets/logoFooter.svg';
+import React, { useRef, useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/auth';
+import { api } from '../../service/api';
+import logo from '../../assets/image.png';
+import explore from '../../assets/logoFooter.svg'
 import pngHome from '../../assets/pngHome.svg';
 import { Header } from "../../components/Header";
-import { PiPlusBold, PiMinusBold, PiHeartStraightBold, PiCaretLeftBold, PiCaretRightBold, PiPencilSimple } from "react-icons/pi";
-import { CustomButton } from "../../components/Button";
 import { Footer } from "../../components/Footer";
-import React, { useRef, useState,useEffect } from 'react';
+import { CustomButton } from "../../components/Button";
+import { PiPlusBold, PiMinusBold, PiHeartStraightBold, PiCaretLeftBold, PiCaretRightBold, PiPencilSimple } from "react-icons/pi";
+import { Link } from 'react-router-dom';
 
 export function Home() {
-  const categories = ['Entrada', 'Prato Principal', 'Sobremesa'];
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState('');
+  const [dishs, setDishs] = useState([]);
+  const [quantities, setQuantities] = useState({});
+  const [cart, setCart] = useState([]);
 
-  const pratos = [
-
-    {
-      id: 1,
-      name: 'Patela Caranguejo',
-      description: 'Caranguejo assado com arroz, feijoada e pure de batata. O pão naan dá um toque especial.',
-      price: '25.00',
-      image: prato,
-      category: 'Entrada'
-    },
-    {
-      id: 2,
-      name: 'Salada Ravanello',
-      description: 'Rabanetes, folhas verdes e molho agridoce salpicados com gergelim. O pão naan dá um toque especial.',
-      price: '25.00',
-      image: prato,
-      category: 'Prato Principal'
-    },
-    {
-      id: 3,
-      name: 'Pudim de leite',
-      description: 'Pudim de leite, coberto com chocolate e morango. O pão naan dá um toque especial.',
-      price: '15.00',
-      image: prato,
-      category: 'Sobremesa'
-    },
-    {
-      id: 4,
-      name: 'Brusqueta',
-      description: 'Pão naan, batata, cogumelo e cebola. O pão naan dá um toque especial.',
-      price: '35.00',
-      image: prato,
-      category: 'Entrada'
-    },
-    {
-      id: 5,
-      name: 'Lasanha',
-      description: 'Lasanha, cogumelo, cebola e molho agridoce. O pão naan dá um toque especial.',
-      price: '58.00',
-      image: prato,
-      category: 'Prato Principal'
-    },
-  ];
-
-  const isAdmin = true; // Lógica para verificar se é admin
+  const { user } = useAuth();
+  const isAdmin = user.role === 'admin';
   const listRef = useRef(null);
 
-  const [quantityTotal, setQuantityTotal] = useState(localStorage.getItem('quantityTotal') || 0);
-  const [quantities, setQuantities] = useState({}); // Estado para quantidades por prato
-  const [cart, setCart] = useState(localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')) : []);
+  // Função para buscar pratos com base na pesquisa
+  const handleSearch = async (lastSearch) => {
+    setSearch(lastSearch);
+  };
 
-
+  // Efeito para buscar pratos ao carregar o componente ou ao alterar a pesquisa
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  
-    localStorage.setItem('quantityTotal', quantityTotal || 0);
-  },[cart]);
-
-  function handleAddToCart(dish) {
-
-    const existingIndex = cart.findIndex(item => item.id === dish.id);
-  
-    if (existingIndex !== -1) {
-
-      // Prato já está no carrinho, atualiza a quantidade
-      const updatedQuantityDish = {
-        ...cart[existingIndex],
-        quantity: cart[existingIndex].quantity + (quantities[dish.id] || 1)
-      };
-  
-      setCart(prevCart => [
-        ...prevCart.slice(0, existingIndex),
-        updatedQuantityDish,
-        ...prevCart.slice(existingIndex + 1)
-      ]);
-  
-    } else {
-      // Prato não está no carrinho, adiciona com a quantidade
-      const updatedDish = { ...dish, quantity: quantities[dish.id] || 1 };
-     setCart(prevCart=> [...prevCart, updatedDish]);
+    async function fetchDishes() {
+      const response = await api.get(`/dish?search=${search}`);
+      setDishs(response.data);
     }
-    
+    fetchDishes();
+  }, [search]);
 
-    setQuantityTotal(prevTotal => prevTotal + (quantities[dish.id] || 1));
+  // Efeito para extrair categorias dos pratos
+  useEffect(() => {
+    const categoriasSet = new Set(dishs.map(dish => dish.category));
+    setCategories([...categoriasSet]);
+  }, [dishs]);
+
+  // Função para adicionar pratos ao carrinho
+  const handleAddToCart = (dish) => {
+    const updatedCart = [...cart];
+    const existingIndex = updatedCart.findIndex(item => item.id === dish.id);
+
+    if (existingIndex !== -1) {
+      updatedCart[existingIndex] = {
+        ...updatedCart[existingIndex],
+        quantity: updatedCart[existingIndex].quantity + (quantities[dish.id] || 1)
+      };
+    } else {
+      updatedCart.push({ ...dish, quantity: quantities[dish.id] || 1 });
+    }
+
+    setCart(updatedCart);
+    localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
+    setQuantities({});
     
   };
-  
 
-  function increaseQuantity(dishId) {
+  // Funções para aumentar e diminuir a quantidade de pratos
+  const increaseQuantity = (dishId) => {
     setQuantities(prevQuantities => ({
       ...prevQuantities,
       [dishId]: (prevQuantities[dishId] || 1) + 1
     }));
   };
 
-  function decreaseQuantity(dishId) {
+  const decreaseQuantity = (dishId) => {
     if (quantities[dishId] > 1) {
       setQuantities(prevQuantities => ({
         ...prevQuantities,
@@ -114,10 +78,11 @@ export function Home() {
     }
   };
 
+  // Funções para scroll na lista de pratos
   const scrollLeft = () => {
     if (listRef.current && listRef.current.scrollLeft > 0) {
       listRef.current.scrollBy({
-        left: -300, // Ajuste a quantidade de scroll conforme necessário
+        left: -300,
         behavior: 'smooth',
       });
     }
@@ -126,15 +91,15 @@ export function Home() {
   const scrollRight = () => {
     if (listRef.current && listRef.current.scrollLeft < listRef.current.scrollWidth - listRef.current.clientWidth) {
       listRef.current.scrollBy({
-        left: 300, // Ajuste a quantidade de scroll conforme necessário
+        left: 300,
         behavior: 'smooth',
       });
     }
   };
 
   return (
-    <div className='flex flex-col w-full min-h-screen'>
-      <Header isAdmin={isAdmin} quantityDish={quantityTotal} />
+    <div className='flex flex-col min-h-screen'>
+      <Header isAdmin={isAdmin} onSearch={handleSearch} />
       <section className="w-5/6 mx-auto mt-8 sm:mt-8 lg:mt-36">
         <div className="relative flex flex-row rounded-sm items-center justify-end max-width: 7xl h-20 bg-gradient-to-b from-LightGradient to-DarkGradient sm:h-24 lg:h-60 lg:rounded-lg">
           <div className='absolute left-[-30px] bottom-[-5%]'>
@@ -147,47 +112,60 @@ export function Home() {
         </div>
       </section>
 
-      {categories.map((category, index) => (
-        <main className='flex-grow w-5/6 mx-auto mb-5' key={index}>
-          <h1 className='mt-10 poppins-regular text-base mb-5 lg:text-xl'>{category}</h1>
-          <ul className='flex relative pl-8 flex-row gap-4 overflow-x-scroll no-scrollbar lg:overflow-hidden' ref={listRef}>
-            {pratos.filter(dish => dish.category === category).map(dish => (
-              <li key={dish.id} className='relative flex flex-col gap-3 justify-center items-center rounded-lg p-6 min-h-64 w-52 lg:w-72 bg-Dark200'>
-                {isAdmin ? (
-                  <PiPencilSimple className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' />
-                ) : (
-                  <PiHeartStraightBold className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' />
-                )}
+      <div className="flex-grow w-5/6 mx-auto mb-5">
+        {categories.length > 0 ? (
+          categories.map((category, index) => (
+            <main className='flex-grow' key={index}>
+              <h1 className='mt-10 poppins-regular text-base mb-5 lg:text-xl'>{category}</h1>
+              <ul className='flex relative pl-8 flex-row gap-4 overflow-x-scroll no-scrollbar lg:overflow-hidden' ref={listRef}>
+                {dishs.filter(dish => dish.category === category).map(dish => {
+                  const imgDish = dish.imgDish ? `${api.defaults.baseURL}/files/${dish.imgDish}` : logo;
 
-                <img className="w-20 lg:w-28" src={dish.image} alt="" />
-                <div className='flex flex-col gap-2 items-center w-3/4'>
-                  <a href=""><h1 className="text-xs lg:text-lg">{dish.name} &gt;</h1></a>
-                  <div className='hidden lg:flex text-small h-10 text-center'>
-                    <p>{dish.description}</p>
-                  </div>
-                  <p className='text-Cake200 roboto-regular text-sm lg:text-2xl'>R$ {dish.price}</p>
-                  {!isAdmin && (
-                    <div className='flex flex-col items-center gap-3 lg:flex-row'>
-                      <div className='flex flex-row items-center gap-4'>
-                        <PiMinusBold className="w-5 cursor-pointer" onClick={() => decreaseQuantity(dish.id)} />
-                        <p>{quantities[dish.id] || 1}</p>
-                        <PiPlusBold className="w-5 cursor-pointer" onClick={() => increaseQuantity(dish.id)} />
+                  return (
+                    <li key={dish.id} className='relative flex flex-col gap-3 justify-center items-center rounded-lg p-6 min-h-64 w-52 lg:w-72 bg-Dark200'>
+                      {isAdmin ? (
+                       <Link to={`/edit-dish/${dish.id}`}> <PiPencilSimple className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' /></Link>
+                      ) : (
+                        <PiHeartStraightBold className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' />
+                      )}
+                      <img className="w-20 lg:w-28" src={logo} alt={dish.name} />
+                      <div className='flex flex-col gap-2 items-center w-3/4'>
+                        <Link to={`/preview/${dish.id}`}><h1 className="text-xs lg:text-lg">{dish.name} &gt;</h1></Link>
+                        <div className='hidden lg:flex text-small h-10 text-center'>
+                          <p>{dish.description}</p>
+                        </div>
+                        <p className='text-Cake200 roboto-regular text-sm lg:text-2xl'>R$ {dish.price}</p>
+                        {!isAdmin && (
+                          <div className='flex flex-col items-center gap-3 lg:flex-row'>
+                            <div className='flex flex-row items-center gap-4'>
+                              <PiMinusBold className="w-5 cursor-pointer" onClick={() => decreaseQuantity(dish.id)} />
+                              <p>{quantities[dish.id] || 1}</p>
+                              <PiPlusBold className="w-5 cursor-pointer" onClick={() => increaseQuantity(dish.id)} />
+                            </div>
+                            <CustomButton className="w-full " title={"Incluir"} onClick={() => handleAddToCart(dish)} />
+                          </div>
+                        )}
                       </div>
-                      <CustomButton className="w-full " title={"Incluir"} onClick={() => handleAddToCart(dish)} />
-                    </div>
-                  )}
+                    </li>
+                  );
+                })}
+                <div className='hidden lg:flex items-center justify-end h-96 w-18 bg-gradient-to-l from-Dark400 to-transparent absolute top-0 right-0'>
+                  <PiCaretRightBold className='w-7 h-6 cursor-pointer' onClick={scrollRight} />
                 </div>
-              </li>
-            ))}
-            <div className='hidden lg:flex items-center justify-end h-96 w-18 bg-gradient-to-l from-Dark400 to-transparent absolute top-0 right-0'>
-              <PiCaretRightBold className='w-7 h-6 cursor-pointer' onClick={scrollRight} />
-            </div>
-            <div className='hidden lg:flex items-center h-96 w-18 bg-gradient-to-r from-Dark400 to-transparent absolute top-0 left-8'>
-              <PiCaretLeftBold className='w-7 h-6 cursor-pointer' onClick={scrollLeft} />
-            </div>
-          </ul>
-        </main>
-      ))}
+                <div className='hidden lg:flex items-center h-96 w-18 bg-gradient-to-r from-Dark400 to-transparent absolute top-0 left-8'>
+                  <PiCaretLeftBold className='w-7 h-6 cursor-pointer' onClick={scrollLeft} />
+                </div>
+              </ul>
+            </main>
+          ))
+        ) : (
+          <div className='flex items-center justify-center my-16 gap-4 '>
+            <img className='opacity-40' src={explore}alt="" />
+            <p className="text-center text-lg font-roboto font-semibold text-Light700 opacity-50 ">Sem pratos cadastrados</p>
+          </div>
+        )}
+      </div>
+
       <Footer />
     </div>
   );

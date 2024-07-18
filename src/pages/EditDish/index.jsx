@@ -1,20 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PiUploadSimpleBold,PiCheckBold  } from "react-icons/pi";
+import { PiUploadSimpleBold, PiCheckBold } from "react-icons/pi";
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { InputIngredients } from '../../components/InputIngredients';
 import { useAuth } from '../../hooks/auth';
 import { api } from '../../service/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 
 const categories = ['Entrada', 'Prato Principal', 'Sobremesa'];
 
-export function NewDish() {
+export function EditDish() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { id } = useParams();
   const isAdmin = user.role === "admin" ? true : false;
- 
+
   const fileInputRef = useRef(null);
 
   const [ingredients, setIngredients] = useState([]);
@@ -26,44 +27,82 @@ export function NewDish() {
   const [categoryDish, setCategoryDish] = useState('');
 
 
+  console.log("image",  image)
+  console.log("newIngredient", newIngredient)
+
   const handleIconClick = () => {
     fileInputRef.current.click();
   };
 
-  
 
 
-  function handleAddDish() {
-    console.log("dish", name, description, price, image, ingredients, categoryDish)
-    if (!name || !description || !price || !image || !ingredients) {
+  useEffect(() => {
+    async function fetchDishes() {
+      try {
+        const response = await api.get(`/dish/${id}`);
+        
+        const ingredients = response.data?.ingredients.map(ingredient => ingredient.name);
+        setIngredients(ingredients);
+        setImage(response.data?.dish.imgDish);
+        setName(response.data?.dish.name);
+        setDescription(response.data?.dish.description);
+        setPrice(response.data?.dish.price);
+
+      } catch (error) {
+        console.error("Failed to fetch the dish:", error);
+        // Exibir uma mensagem de erro para o usuário
+        alert("Erro ao carregar o prato. Por favor, tente novamente mais tarde.");
+        
+      }
+    }
+
+    fetchDishes();
+  }, [id]);
+
+
+
+  async function handleUpdateDish() {
+    console.log(" entrando no handle dish", name, description, price, image, ingredients, categoryDish)
+
+    if (!name || !description || !price || !image || ingredients.length === 0) {
       alert('Preencha todos os campos');
       return;
     };
-    if(newIngredient){
+    if (newIngredient) {
       alert('Existe um ingrediente em aberto. Adicione-o antes de salvar');
       return;
     }
-    console.log("dish", name, description, price, image, ingredients, categoryDish)
 
-    api.post("/dish", { name, description, price, categoryDish })
-      .then(() => {
-        alert("Cadastrado com sucesso");
-        navigate("/");
-        setName('');
-        setDescription('');
-        setPrice('');
-        setImage('');
-        setCategoryDish('');
-        setIngredients([]);
-      })
-      .catch(error => {
-        console.log(error);
-        if (error) {
-          alert(error.response.data.message);
-        } else {
-          alert("Não foi possivel cadastrar");
-        }
-      });
+    console.log("dentro do handle dish", name, description, price, image, ingredients, categoryDish)
+
+    try {
+
+      await api.put(`/dish/${id}`, { name, description, price, categoryDish })
+
+      await api.delete(`/ingredient/${id}`)
+
+      await api.post(`/ingredient/${id}`, { ingredients })
+
+
+
+      const fileUploadForm = new FormData();
+      fileUploadForm.append("imgDish",image);
+      
+      await api.patch(`/dish/imgDish/${id}`,fileUploadForm);
+
+      alert("Atualizado com sucesso");
+      navigate("/");
+
+
+    } catch (error) {
+      console.log(error);
+      if (error) {
+        alert(error.response.data.message);
+      } else {
+        alert("Não foi possivel cadastrar");
+      }
+    };
+
 
   }
   function handleAddIngredient() {
@@ -82,6 +121,7 @@ export function NewDish() {
 
 
 
+
   function handleChangeImageDish(event){
     
     const file = event.target.files[0];
@@ -90,6 +130,7 @@ export function NewDish() {
     //const imagePreview = URL.createObjectURL(file);
     //setAvatar(imagePreview)
   };
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -107,7 +148,7 @@ export function NewDish() {
                   <div className='flex items-center gap-2 pl-5 bg-Dark800 rounded-lg p-2'>
                     {
                       image ? <PiCheckBold className="w-7 h-7" onClick={handleIconClick} />
-                      :<PiUploadSimpleBold className="w-7 h-7" onClick={handleIconClick} />
+                        : <PiUploadSimpleBold className="w-7 h-7" onClick={handleIconClick} />
                     }
                     <p className='text-sm'>Selecione imagem</p>
                   </div>
@@ -120,7 +161,7 @@ export function NewDish() {
               <input
                 type="text"
                 className="p-2 rounded w-full bg-Dark800 placeholder:text-sm h-11 rounded-lg lg:placeholder:text-base"
-                placeholder='Ex.: Salada Ceasar'
+                placeholder={name}
                 onChange={e => setName(e.target.value)}
 
               />
@@ -158,9 +199,9 @@ export function NewDish() {
             <div className="w-full lg:w-1/3 ">
               <label className='text-xs lg:text-sm'>Preço</label>
               <input
-                type="text"
+                type="number"
                 className="p-[15px] rounded w-full mt-[7px] bg-Dark800 placeholder:text-xs lg:placeholder:text-base rounded-lg"
-                placeholder="R$ 00.00"
+                placeholder={`R$ ${price}`}
                 onChange={e => setPrice(e.target.value)}
               />
             </div>
@@ -171,14 +212,14 @@ export function NewDish() {
             <textarea
               type="text"
               className="p-2 rounded w-full h-32 bg-Dark800 mt-3 placeholder:text-xs lg:placeholder:text-base rounded-lg"
-              placeholder="Fale brevemente sobre o prato, seus ingredientes e composição"
+              placeholder={description}
               onChange={e => setDescription(e.target.value)}
             />
           </div>
 
           <button
             className="bg-Tomato400 text-white p-2 rounded self-end w-full lg:w-1/4 rounded-lg"
-            onClick={handleAddDish}
+            onClick={handleUpdateDish}
           >
             Adicionar
           </button>

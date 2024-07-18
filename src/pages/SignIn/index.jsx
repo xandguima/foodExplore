@@ -1,8 +1,21 @@
 
 import { Input } from "../../components/Input";
 import { CustomButton } from "../../components/Button";
+import { useAuth } from "../../hooks/auth";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export function SignIn() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const {signIn} = useAuth();
+
+  function handleSignIn(e) {
+    e.preventDefault();
+    
+    signIn({email,password});
+  }
 
   return (
     <div
@@ -27,9 +40,9 @@ export function SignIn() {
           onChange={e => setPassword(e.target.value)}
         />
     
-          <CustomButton className="mt-5 " title={"Entrar"} />
+          <CustomButton className="mt-5 " title={"Entrar"} onClick={handleSignIn} />
         
-        <a className="text-center mt-2" href="">Criar uma conta</a>
+        <Link className="text-center mt-2" to="/register">Criar uma conta</Link>
       </form>
 
     </div>

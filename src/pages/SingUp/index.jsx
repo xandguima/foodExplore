@@ -1,9 +1,42 @@
 
 import { Input } from "../../components/Input";
 import { CustomButton } from "../../components/Button";
+import { api } from "../../service/api";
+import { useNavigate,Link } from "react-router-dom";
+import { useState } from "react";
 
 
 export function SignUp() {
+
+  const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleSignUp(e) {
+
+    e.preventDefault();
+
+    if (!name || !email || !password) {
+      return alert("Preencha todos os campos");
+
+    }
+    api.post("/user", { name, email, password })
+      .then(() => {
+        alert("Cadastrado com sucesso");
+        navigate("/");
+      })
+      .catch(error => {
+        console.log(error);
+        if (error) {
+          alert(error.response.data.message);
+        } else {
+          alert("Não foi possivel cadastrar");
+        }
+      });
+
+  }
 
   return (
     <div
@@ -34,8 +67,9 @@ export function SignUp() {
           placeholder="No mínimo 6 caracteres"
           onChange={e => setPassword(e.target.value)}
         />
-        <CustomButton className="mt-5" title={"Criar conta"} />
-        <a className="text-center mt-2" href="">Já tenho uma conta</a>
+        <CustomButton className="mt-5" title={"Criar conta"} onClick={handleSignUp} />
+
+        <Link className="text-center mt-2" to={"/"}>Já tenho uma conta</Link>
       </form>
 
 

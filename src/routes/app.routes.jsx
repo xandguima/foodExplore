@@ -1,7 +1,7 @@
 import { Home } from '../pages/Home'
 import { Preview } from '../pages/Preview'
 import { NewDish } from '../pages/NewDish'
-
+import {EditDish} from '../pages/EditDish'
 import { Route, Routes } from 'react-router-dom'
 
 
@@ -10,8 +10,9 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/preview" element={<Preview />} />
+      <Route path="/preview/:id" element={<Preview />} />
       <Route path="/new-dish" element={<NewDish />} />
+      <Route path="/edit-dish/:id" element={<EditDish />} />
     </Routes>
   )
 }
