@@ -1,12 +1,13 @@
-import prato from '../../assets/image.png';
-import logoFooter from '../../assets/logoFooter.svg';
-import pngHome from '../../assets/pngHome.svg';
-import { Input } from '../Input';
 import { PiXBold, PiMagnifyingGlass } from "react-icons/pi";
-import { CustomButton } from "../Button";
+import { Link } from "react-router-dom";
 import { Footer } from "../Footer";
+import { useAuth } from "../../hooks/auth";
 
 export function SlideBar({ isAdmin, isOpen, isClose }) {
+  const { signOut } = useAuth();
+  function handleSignOut() {
+    signOut();
+  }
   return (
     <div
       className={`fixed top-0 left-0 w-full h-full bg-Dark700 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'
@@ -23,15 +24,37 @@ export function SlideBar({ isAdmin, isOpen, isClose }) {
         </div>
 
         <section className='flex flex-col w-full items-start mt-5 px-5 gap-4'>
+
           <div className='w-full'>
-            {isAdmin ?
-              <p className='text-lg'>Novo Prato</p> :null
-            }
+
+            <Link to={'/'}> <p className='text-lg'>Home</p></Link>
+
             <div className='h-0.5 bg-Light300 w-full opacity-10'></div>
           </div>
 
+          {isAdmin ?
+            <div className='w-full'>
+
+              <Link to={'/new-dish'}> <p className='text-lg'>Novo Prato</p></Link>
+
+              <div className='h-0.5 bg-Light300 w-full opacity-10'></div>
+            </div> : null
+          }
+          {isAdmin ? null :
+            <div className='w-full'>
+              <Link to={'/orders'}> <p className='text-lg'>Carrinho</p></Link>
+              <div className='h-0.5 bg-Light300 w-full opacity-10'></div>
+            </div>
+          }
+          {isAdmin ? null :
+            <div className='w-full'>
+              <Link to={'/orders/payment'}> <p className='text-lg'>Pagamento</p></Link>
+              <div className='h-0.5 bg-Light300 w-full opacity-10'></div>
+            </div>
+          }
+
           <div className='w-full'>
-            <p className='text-lg'>Sair</p>
+            <p className='text-lg' onClick={handleSignOut}>Sair</p>
             <div className='h-0.5 bg-Light300 w-full opacity-10'></div>
           </div>
         </section>

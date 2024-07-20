@@ -23,7 +23,7 @@ export function NewDish() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [image, setImage] = useState('');
-  const [categoryDish, setCategoryDish] = useState('');
+  const [categoryDish, setCategoryDish] = useState(categories[0]);
 
 
   const handleIconClick = () => {
@@ -34,18 +34,19 @@ export function NewDish() {
 
 
   function handleAddDish() {
-    console.log("dish", name, description, price, image, ingredients, categoryDish)
-    if (!name || !description || !price || !image || !ingredients) {
+    console.log("dish", name, description, price, image, ingredients,"category = ", categoryDish)
+    if (!name || !description || !price || !image || !ingredients || !categoryDish) {
       alert('Preencha todos os campos');
       return;
     };
+
     if(newIngredient){
       alert('Existe um ingrediente em aberto. Adicione-o antes de salvar');
       return;
     }
     console.log("dish", name, description, price, image, ingredients, categoryDish)
 
-    api.post("/dish", { name, description, price, categoryDish })
+    api.post("/dish", { name, description, price, category:categoryDish })
       .then(() => {
         alert("Cadastrado com sucesso");
         navigate("/");

@@ -3,7 +3,7 @@ import prato from '../../assets/image.png';
 import { PiPlusBold, PiMinusBold, PiReceiptBold } from "react-icons/pi";
 import { CustomButton } from "../../components/Button";
 import { Footer } from "../../components/Footer";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/auth";
 import { useEffect, useState } from "react";
 import { api } from '../../service/api';
@@ -13,7 +13,7 @@ import { api } from '../../service/api';
 export function Preview() {
   const { user } = useAuth();
   const { id } = useParams();
-  const isAdmin = user.role === "admin" ? true : false;//Lógica para verificar se é admin
+  const isAdmin = user.role === "admin";//Lógica para verificar se é admin
 
   const [quantities, setQuantities] = useState({});
   const [cart, setCart] = useState(localStorage.getItem('@FoodExplorer:cart') ? JSON.parse(localStorage.getItem('@FoodExplorer:cart')) : []);
@@ -21,9 +21,7 @@ export function Preview() {
   const [dish, setDish] = useState();
   const [ingredients, setIngredients] = useState([]);
 
-  console.log("dish", dish)
-  console.log("ingredients", ingredients)
-
+  const navigate = useNavigate();
 
   const handleAddToCart = (dish) => {
     const updatedCart = [...cart];
@@ -41,6 +39,7 @@ export function Preview() {
     setCart(updatedCart);
     localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
     setQuantities({});
+   
     
   };
 
@@ -60,6 +59,19 @@ export function Preview() {
     }
   };
 
+
+  function handleClick (dish){
+    if(isAdmin){
+      handleNavegateToEdit()
+    }else{
+      handleAddToCart(dish)
+    }
+
+  }
+
+  function handleNavegateToEdit (){
+    navigate(`/edit-dish/${id}`);
+  }
 
 
   useEffect(() => {
@@ -116,8 +128,8 @@ export function Preview() {
                   <PiPlusBold className="w-3 h-3 lg:w-5 lg:h-5" onClick={() => increaseQuantity(dish?.id)} />
                 </div>
 
-                <CustomButton className="text-xs lg:hidden" title={`${isAdmin ? "Editar prato" : `Pedir · R$ ${dish?.price*quantities[dish?.id] || dish?.price}`} `} icon={PiReceiptBold} onClick={() => handleAddToCart(dish)} />
-                <CustomButton className="hidden lg:flex text-lg" title={`${isAdmin ? "Editar prato" : `incluir · R$ ${dish?.price*quantities[dish?.id]||dish?.price}`}`} onClick={() => handleAddToCart(dish)} />
+                
+                <CustomButton className="flex text-xs lg:text-lg" title={`${isAdmin ? "Editar prato" : `incluir · R$ ${dish?.price*quantities[dish?.id]||dish?.price}`}`}  onClick={() => handleClick(dish)} />
 
 
               </section>
