@@ -15,12 +15,12 @@ export function Home() {
   const [search, setSearch] = useState('');
   const [dishs, setDishs] = useState([]);
   const [quantities, setQuantities] = useState({});
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(localStorage.getItem('@FoodExplorer:cart') ? JSON.parse(localStorage.getItem('@FoodExplorer:cart')) : []);
 
   const { user } = useAuth();
   const isAdmin = user.role === 'admin';
   const listRef = useRef(null);
-
+  console.log("dishs", dishs)
   // Função para buscar pratos com base na pesquisa
   const handleSearch = async (lastSearch) => {
     setSearch(lastSearch);
@@ -44,6 +44,7 @@ export function Home() {
   // Função para adicionar pratos ao carrinho
   const handleAddToCart = (dish) => {
     const updatedCart = [...cart];
+    console.log("updatedCart",updatedCart)
     const existingIndex = updatedCart.findIndex(item => item.id === dish.id);
 
     if (existingIndex !== -1) {
@@ -58,6 +59,7 @@ export function Home() {
     setCart(updatedCart);
     localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
     setQuantities({});
+    
     
   };
 
@@ -119,8 +121,7 @@ export function Home() {
               <h1 className='mt-10 poppins-regular text-base mb-5 lg:text-xl'>{category}</h1>
               <ul className='flex relative pl-8 flex-row gap-4 overflow-x-scroll no-scrollbar lg:overflow-hidden' ref={listRef}>
                 {dishs.filter(dish => dish.category === category).map(dish => {
-                  const imgDish = dish.imgDish ? `${api.defaults.baseURL}/files/${dish.imgDish}` : logo;
-
+                  const imgDish = dish.imgDish ? `${api.defaults.baseURL}/files/${dish.imgDish}` : null;
                   return (
                     <li key={dish.id} className='relative flex flex-col gap-3 justify-center items-center rounded-lg p-6 min-h-64 w-52 lg:w-72 bg-Dark200'>
                       {isAdmin ? (
@@ -128,7 +129,7 @@ export function Home() {
                       ) : (
                         <PiHeartStraightBold className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' />
                       )}
-                      <img className="w-20 lg:w-28" src={logo} alt={dish.name} />
+                      <img className="w-20 lg:w-28 rounded-full" src={imgDish} alt={dish.name} />
                       <div className='flex flex-col gap-2 items-center w-3/4'>
                         <Link to={`/preview/${dish.id}`}><h1 className="text-xs lg:text-lg">{dish.name} &gt;</h1></Link>
                         <div className='hidden lg:flex text-small h-10 text-center'>
