@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PiUploadSimpleBold, PiCheckBold } from "react-icons/pi";
+import { PiUploadSimpleBold, PiCheckBold,PiXBold  } from "react-icons/pi";
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { InputIngredients } from '../../components/InputIngredients';
@@ -14,7 +14,7 @@ export function EditDish() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { id } = useParams();
-  const isAdmin = user.role === "admin" ? true : false;
+  const isAdmin = user.rule === "admin";
 
   const fileInputRef = useRef(null);
 
@@ -27,9 +27,6 @@ export function EditDish() {
   const [categoryDish, setCategoryDish] = useState('');
 
 
-  console.log("image",  image)
-  console.log("newIngredient", newIngredient)
-
   const handleIconClick = () => {
     fileInputRef.current.click();
   };
@@ -40,10 +37,9 @@ export function EditDish() {
     async function fetchDishes() {
       try {
         const response = await api.get(`/dish/${id}`);
-        
+
         const ingredients = response.data?.ingredients.map(ingredient => ingredient.name);
         setIngredients(ingredients);
-        setImage(response.data?.dish.imgDish);
         setName(response.data?.dish.name);
         setDescription(response.data?.dish.description);
         setPrice(response.data?.dish.price);
@@ -52,7 +48,7 @@ export function EditDish() {
         console.error("Failed to fetch the dish:", error);
         // Exibir uma mensagem de erro para o usuário
         alert("Erro ao carregar o prato. Por favor, tente novamente mais tarde.");
-        
+
       }
     }
 
@@ -64,7 +60,7 @@ export function EditDish() {
   async function handleUpdateDish() {
     console.log(" entrando no handle dish", name, description, price, image, ingredients, categoryDish)
 
-    if (!name || !description || !price || !image || ingredients.length === 0) {
+    if (!name || !description || !price || ingredients.length === 0) {
       alert('Preencha todos os campos');
       return;
     };
@@ -83,15 +79,23 @@ export function EditDish() {
 
       await api.post(`/ingredient/${id}`, { ingredients })
 
-
-
-      const fileUploadForm = new FormData();
-      fileUploadForm.append("imgDish",image);
-      
-      await api.patch(`/dish/imgDish/${id}`,fileUploadForm);
+      console.log("image", image)
+      if (image) {
+        const fileUploadForm = new FormData();
+        fileUploadForm.append("imgDish", image);
+        await api.patch(`/dish/imgDish/${id}`, fileUploadForm);
+      }
 
       alert("Atualizado com sucesso");
       navigate("/");
+      setCategoryDish('');
+      setDescription('');
+      setName('');
+      setPrice('');
+      setIngredients([]);
+      setImage('');
+
+
 
 
     } catch (error) {
@@ -122,8 +126,8 @@ export function EditDish() {
 
 
 
-  function handleChangeImageDish(event){
-    
+  function handleChangeImageDish(event) {
+
     const file = event.target.files[0];
     setImage(file);
 
@@ -145,12 +149,13 @@ export function EditDish() {
               <label htmlFor="file" className='text-xs lg:text-sm'>Imagem do Prato</label>
               <div className='flex items-center justify-center w-full mt-3 '>
                 <label className='w-full h-full cursor-pointer'>
-                  <div className='flex items-center gap-2 pl-5 bg-Dark800 rounded-lg p-2'>
+                  <div className='relative flex items-center gap-2 pl-5 bg-Dark800 rounded-lg p-2'>
                     {
                       image ? <PiCheckBold className="w-7 h-7" onClick={handleIconClick} />
                         : <PiUploadSimpleBold className="w-7 h-7" onClick={handleIconClick} />
                     }
                     <p className='text-sm'>Selecione imagem</p>
+                    <PiXBold className='absolute right-5 w-5 h-5 text-Tomato200' onClick={() => setImage('')} />
                   </div>
                   <input type="file" name="" id="" className='hidden' ref={fileInputRef} onChange={handleChangeImageDish} />
                 </label>
@@ -162,6 +167,7 @@ export function EditDish() {
                 type="text"
                 className="p-2 rounded w-full bg-Dark800 placeholder:text-sm h-11 rounded-lg lg:placeholder:text-base"
                 placeholder={name}
+                value={name}
                 onChange={e => setName(e.target.value)}
 
               />
@@ -213,6 +219,7 @@ export function EditDish() {
               type="text"
               className="p-2 rounded w-full h-32 bg-Dark800 mt-3 placeholder:text-xs lg:placeholder:text-base rounded-lg"
               placeholder={description}
+              value={description}
               onChange={e => setDescription(e.target.value)}
             />
           </div>

@@ -7,7 +7,7 @@ import qrcode from '../../assets/qrcode.png'
 
 export function PaymentMobile() {
   const { user } = useAuth();
-  const isAdmin = user.role === "admin"; // Lógica para verificar se é admin
+  const isAdmin = user.rule === "admin"; // Lógica para verificar se é admin
 
   const [activeTab, setActiveTab] = useState('pix');
 

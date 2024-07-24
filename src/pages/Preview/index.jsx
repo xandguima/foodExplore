@@ -13,14 +13,15 @@ import { api } from '../../service/api';
 export function Preview() {
   const { user } = useAuth();
   const { id } = useParams();
-  const isAdmin = user.role === "admin";//Lógica para verificar se é admin
+  const isAdmin = user.rule === "admin";//Lógica para verificar se é admin
 
   const [quantities, setQuantities] = useState({});
   const [cart, setCart] = useState(localStorage.getItem('@FoodExplorer:cart') ? JSON.parse(localStorage.getItem('@FoodExplorer:cart')) : []);
 
   const [dish, setDish] = useState();
   const [ingredients, setIngredients] = useState([]);
-
+  console.log("dish", dish);
+  const imgDish = dish?.imgDish ? `${api.defaults.baseURL}/files/${dish.imgDish}` : null;
   const navigate = useNavigate();
 
   const handleAddToCart = (dish) => {
@@ -101,7 +102,12 @@ export function Preview() {
         <main className="flex flex-grow justify-center">
           <figure className="flex flex-col justify-center items-center w-full gap-5  lg:flex-row lg:gap-10 ">
 
-            <img className="w-48 sm:w-72 lg:w-1/3" src={prato} alt="" />
+            {
+              dish?.imgDish ?
+              <img className="w-48 h-48 object-cover sm:w-72 sm:h-72  lg:w-1/3 lg:h-3/4  rounded-full" src={imgDish} alt="" />:
+              <div className="w-48 h-48 bg-Dark300 rounded-full animate-pulse"></div>
+            }
+            
 
             <div className="flex flex-col items-center w-2/3  gap-5 lg:w-1/2 lg:gap-9 lg:items-start">
               <h1 className="text-xl xs:text-2xl sm:text-4xl lg:text-5xl lg:text-start font-semibold">{dish?.name}</h1>

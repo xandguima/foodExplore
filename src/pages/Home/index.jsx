@@ -1,14 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/auth';
 import { api } from '../../service/api';
-import logo from '../../assets/image.png';
 import explore from '../../assets/logoFooter.svg'
 import pngHome from '../../assets/pngHome.svg';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
-import { CustomButton } from "../../components/Button";
-import { PiPlusBold, PiMinusBold, PiHeartStraightBold, PiCaretLeftBold, PiCaretRightBold, PiPencilSimple } from "react-icons/pi";
-import { Link } from 'react-router-dom';
+import { PiCaretLeftBold, PiCaretRightBold, PiPencilSimple } from "react-icons/pi";
+import { DishList} from '../../components/DishCard';
 
 export function Home() {
   const [categories, setCategories] = useState([]);
@@ -18,7 +16,7 @@ export function Home() {
   const [cart, setCart] = useState(localStorage.getItem('@FoodExplorer:cart') ? JSON.parse(localStorage.getItem('@FoodExplorer:cart')) : []);
 
   const { user } = useAuth();
-  const isAdmin = user.role === 'admin';
+  const isAdmin = user.rule === 'admin';
   const listRef = useRef(null);
   console.log("dishs", dishs)
   // Função para buscar pratos com base na pesquisa
@@ -44,7 +42,7 @@ export function Home() {
   // Função para adicionar pratos ao carrinho
   const handleAddToCart = (dish) => {
     const updatedCart = [...cart];
-    console.log("updatedCart",updatedCart)
+    console.log("updatedCart", updatedCart)
     const existingIndex = updatedCart.findIndex(item => item.id === dish.id);
 
     if (existingIndex !== -1) {
@@ -59,8 +57,8 @@ export function Home() {
     setCart(updatedCart);
     localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
     setQuantities({});
-    
-    
+
+
   };
 
   // Funções para aumentar e diminuir a quantidade de pratos
@@ -120,36 +118,9 @@ export function Home() {
             <main className='flex-grow' key={index}>
               <h1 className='mt-10 poppins-regular text-base mb-5 lg:text-xl'>{category}</h1>
               <ul className='flex relative pl-8 flex-row gap-4 overflow-x-scroll no-scrollbar lg:overflow-hidden' ref={listRef}>
-                {dishs.filter(dish => dish.category === category).map(dish => {
-                  const imgDish = dish.imgDish ? `${api.defaults.baseURL}/files/${dish.imgDish}` : null;
-                  return (
-                    <li key={dish.id} className='relative flex flex-col gap-3 justify-center items-center rounded-lg p-6 min-h-64 w-52 lg:w-72 bg-Dark200'>
-                      {isAdmin ? (
-                       <Link to={`/edit-dish/${dish.id}`}> <PiPencilSimple className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' /></Link>
-                      ) : (
-                        <PiHeartStraightBold className='absolute top-2 right-2 w-10 h-7 lg:right-4 lg:top-4' />
-                      )}
-                      <img className="w-20 lg:w-28 rounded-full" src={imgDish} alt={dish.name} />
-                      <div className='flex flex-col gap-2 items-center w-3/4'>
-                        <Link to={`/preview/${dish.id}`}><h1 className="text-xs lg:text-lg">{dish.name} &gt;</h1></Link>
-                        <div className='hidden lg:flex text-small h-10 text-center'>
-                          <p>{dish.description}</p>
-                        </div>
-                        <p className='text-Cake200 roboto-regular text-sm lg:text-2xl'>R$ {dish.price}</p>
-                        {!isAdmin && (
-                          <div className='flex flex-col items-center gap-3 lg:flex-row'>
-                            <div className='flex flex-row items-center gap-4'>
-                              <PiMinusBold className="w-5 cursor-pointer" onClick={() => decreaseQuantity(dish.id)} />
-                              <p>{quantities[dish.id] || 1}</p>
-                              <PiPlusBold className="w-5 cursor-pointer" onClick={() => increaseQuantity(dish.id)} />
-                            </div>
-                            <CustomButton className="w-full " title={"Incluir"} onClick={() => handleAddToCart(dish)} />
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
+
+                <DishList dishs={dishs} category={category} isAdmin={isAdmin} api={api} decreaseQuantity={decreaseQuantity} increaseQuantity={increaseQuantity} quantities={quantities} handleAddToCart={handleAddToCart}></DishList>
+                
                 <div className='hidden lg:flex items-center justify-end h-96 w-18 bg-gradient-to-l from-Dark400 to-transparent absolute top-0 right-0'>
                   <PiCaretRightBold className='w-7 h-6 cursor-pointer' onClick={scrollRight} />
                 </div>
@@ -161,7 +132,7 @@ export function Home() {
           ))
         ) : (
           <div className='flex items-center justify-center my-16 gap-4 '>
-            <img className='opacity-40' src={explore}alt="" />
+            <img className='opacity-40' src={explore} alt="" />
             <p className="text-center text-lg font-roboto font-semibold text-Light700 opacity-50 ">Sem pratos cadastrados</p>
           </div>
         )}

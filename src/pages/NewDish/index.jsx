@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PiUploadSimpleBold,PiCheckBold  } from "react-icons/pi";
+import { PiUploadSimpleBold, PiCheckBold } from "react-icons/pi";
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { InputIngredients } from '../../components/InputIngredients';
@@ -13,8 +13,8 @@ const categories = ['Entrada', 'Prato Principal', 'Sobremesa'];
 export function NewDish() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isAdmin = user.role === "admin" ? true : false;
- 
+  const isAdmin = user.rule === "admin" ? true : false;
+
   const fileInputRef = useRef(null);
 
   const [ingredients, setIngredients] = useState([]);
@@ -30,43 +30,60 @@ export function NewDish() {
     fileInputRef.current.click();
   };
 
-  
 
 
-  function handleAddDish() {
-    console.log("dish", name, description, price, image, ingredients,"category = ", categoryDish)
+  async function handleAddDish() {
+    console.log("dish", name, description, price, image, ingredients, "category = ", categoryDish);
+
     if (!name || !description || !price || !image || !ingredients || !categoryDish) {
       alert('Preencha todos os campos');
       return;
-    };
+    }
 
-    if(newIngredient){
+    if (newIngredient) {
       alert('Existe um ingrediente em aberto. Adicione-o antes de salvar');
       return;
     }
-    console.log("dish", name, description, price, image, ingredients, categoryDish)
 
-    api.post("/dish", { name, description, price, category:categoryDish })
-      .then(() => {
-        alert("Cadastrado com sucesso");
-        navigate("/");
+    console.log("dish", name, description, price, image, ingredients, categoryDish);
+
+    try {
+      const response = await api.post("/dish", { name, description, price, category: categoryDish });
+
+      const id = response.data?.id; // Acessando o valor do id da resposta
+
+      // Resetando os campos após o sucesso na requisição
+      setName('');
+      setDescription('');
+      setPrice('');
+      setCategoryDish('');
+
+      await api.post(`/ingredient/${id}`, { ingredients });
+
+      const fileUploadForm = new FormData();
+      fileUploadForm.append("imgDish", image);
+
+      await api.patch(`/dish/imgDish/${id}`, fileUploadForm).then(() => {
+        alert("Prato criado com sucesso")
         setName('');
         setDescription('');
         setPrice('');
-        setImage('');
         setCategoryDish('');
         setIngredients([]);
+        setImage('');
+        navigate('/');
       })
-      .catch(error => {
-        console.log(error);
-        if (error) {
-          alert(error.response.data.message);
-        } else {
-          alert("Não foi possivel cadastrar");
-        }
-      });
 
+    } catch (error) {
+      console.log(error);
+      if (error.response) {
+        alert(error.response.data.message);
+      } else {
+        alert("Não foi possível cadastrar");
+      }
+    }
   }
+
   function handleAddIngredient() {
     if (!newIngredient) {
       alert('Sem ingrediente');
@@ -83,8 +100,8 @@ export function NewDish() {
 
 
 
-  function handleChangeImageDish(event){
-    
+  function handleChangeImageDish(event) {
+
     const file = event.target.files[0];
     setImage(file);
 
@@ -108,7 +125,7 @@ export function NewDish() {
                   <div className='flex items-center gap-2 pl-5 bg-Dark800 rounded-lg p-2'>
                     {
                       image ? <PiCheckBold className="w-7 h-7" onClick={handleIconClick} />
-                      :<PiUploadSimpleBold className="w-7 h-7" onClick={handleIconClick} />
+                        : <PiUploadSimpleBold className="w-7 h-7" onClick={handleIconClick} />
                     }
                     <p className='text-sm'>Selecione imagem</p>
                   </div>
