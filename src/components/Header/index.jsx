@@ -35,11 +35,11 @@ export function Header({ isAdmin, onSearch = () => { }, ...rest }) {
 
     try {
       if (isAdmin) {
-        await api.put("/user/role", { role: "user" });
-        localStorage.setItem("@FoodExplorer:user", JSON.stringify({ ...user, role: "user" }));
+        await api.put("/user/rule", { rule: "user" });
+        localStorage.setItem("@FoodExplorer:user", JSON.stringify({ ...user, rule: "user" }));
       } else {
-        await api.put("/user/role", { role: "admin" });
-        localStorage.setItem("@FoodExplorer:user", JSON.stringify({ ...user, role: "admin" }));
+        await api.put("/user/rule", { rule: "admin" });
+        localStorage.setItem("@FoodExplorer:user", JSON.stringify({ ...user, rule: "admin" }));
       }
       window.location.reload();
     } catch (error) {
