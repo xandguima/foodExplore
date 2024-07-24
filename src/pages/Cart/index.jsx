@@ -10,11 +10,17 @@ import qrcode from '../../assets/qrcode.png';
 
 export function Cart() {
   const { user } = useAuth();
-  const isAdmin = user.role === "admin"; // Lógica para verificar se é admin
+  const isAdmin = user.rule === "admin"; // Lógica para verificar se é admin
   const navigate = useNavigate();
 
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState('pix');
+
+  function removeItem(item) {
+    const updatedCart = cart.filter((i) => i.id !== item.id);
+    setCart(updatedCart);
+    localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
+  }
 
   useEffect(() => {
     const cart = localStorage.getItem('@FoodExplorer:cart');
@@ -49,9 +55,9 @@ export function Cart() {
                         }
                         <div className="flex flex-col flex-grow">
                           <p className="text-white text-sm">{item.name}</p>
-                          <p className="text-Tomato200 text-xs cursor-pointer">Remover item</p>
+                          <p className="text-Tomato200 text-xs cursor-pointer" onClick={() => removeItem(item)}>Remover item</p>
                         </div>
-                        <p className="text-white text-sm">R$ {item.price.toFixed(2)}</p>
+                        <p className="text-white text-sm">R$ {item.price*item.quantity}</p>
                       </li>
                     );
                   })}
@@ -61,7 +67,7 @@ export function Cart() {
             )}
             {cart.length > 0 && (
               <div className="mt-6 flex justify-end mb-5">
-                <CustomButton className="hover:bg-Tomato300 w-44" title="Avançar" onClick={() => { navigate("/orders/payment") }} />
+                <CustomButton className="hover:bg-Tomato300 w-44 lg:hidden" title="Avançar" onClick={() => { navigate("/orders/payment") }} />
               </div>
             )}
           </section>
@@ -120,7 +126,7 @@ export function Cart() {
                     />
                   </div>
                 </div>
-                <CustomButton title="Finalizar pagamento" className="w-full mt-4" />
+                <CustomButton title="Finalizar pagamento" className="w-full mt-4 " />
               </div>
             )}
           </div>
