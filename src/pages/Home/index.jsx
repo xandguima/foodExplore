@@ -1,12 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/auth';
 import { api } from '../../service/api';
-import explore from '../../assets/logoFooter.svg'
+import explore from '../../assets/logoFooter.svg';
 import pngHome from '../../assets/pngHome.svg';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
-import { PiCaretLeftBold, PiCaretRightBold, PiPencilSimple } from "react-icons/pi";
-import { DishList} from '../../components/DishCard';
+import { PiCaretLeftBold, PiCaretRightBold } from "react-icons/pi";
+import { DishList } from '../../components/DishCard';
 
 export function Home() {
   const [categories, setCategories] = useState([]);
@@ -17,18 +17,28 @@ export function Home() {
 
   const { user } = useAuth();
   const isAdmin = user.rule === 'admin';
-  const listRef = useRef(null);
-  console.log("dishs", dishs)
+  const listRefs = useRef([]);
+
   // Função para buscar pratos com base na pesquisa
   const handleSearch = async (lastSearch) => {
     setSearch(lastSearch);
   };
 
-  // Efeito para buscar pratos ao carregar o componente ou ao alterar a pesquisa
+  // Efeito para buscar pratos e favoritos ao carregar o componente ou ao alterar a pesquisa
   useEffect(() => {
     async function fetchDishes() {
       const response = await api.get(`/dish?search=${search}`);
-      setDishs(response.data);
+      const dishesData = response.data;
+
+      const favoritesResponse = await api.get("/like");
+      const favoriteDishIds = favoritesResponse.data.map(favorite => favorite.dish_id);
+
+      const updatedDishes = dishesData.map(dish => ({
+        ...dish,
+        isFavorite: favoriteDishIds.includes(dish.id),
+      }));
+
+      setDishs(updatedDishes);
     }
     fetchDishes();
   }, [search]);
@@ -42,7 +52,6 @@ export function Home() {
   // Função para adicionar pratos ao carrinho
   const handleAddToCart = (dish) => {
     const updatedCart = [...cart];
-    console.log("updatedCart", updatedCart)
     const existingIndex = updatedCart.findIndex(item => item.id === dish.id);
 
     if (existingIndex !== -1) {
@@ -57,8 +66,6 @@ export function Home() {
     setCart(updatedCart);
     localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
     setQuantities({});
-
-
   };
 
   // Funções para aumentar e diminuir a quantidade de pratos
@@ -79,23 +86,23 @@ export function Home() {
   };
 
   // Funções para scroll na lista de pratos
-  const scrollLeft = () => {
-    if (listRef.current && listRef.current.scrollLeft > 0) {
-      listRef.current.scrollBy({
+  function scrollLeft(index) {
+    if (listRefs.current[index]) {
+      listRefs.current[index].scrollBy({
         left: -300,
         behavior: 'smooth',
       });
     }
-  };
+  }
 
-  const scrollRight = () => {
-    if (listRef.current && listRef.current.scrollLeft < listRef.current.scrollWidth - listRef.current.clientWidth) {
-      listRef.current.scrollBy({
-        left: 300,
+  function scrollRight(index) {
+    if (listRefs.current[index]) {
+      listRefs.current[index].scrollBy({
+        left: 200,
         behavior: 'smooth',
       });
     }
-  };
+  }
 
   return (
     <div className='flex flex-col min-h-screen'>
@@ -117,23 +124,35 @@ export function Home() {
           categories.map((category, index) => (
             <main className='flex-grow' key={index}>
               <h1 className='mt-10 poppins-regular text-base mb-5 lg:text-xl'>{category}</h1>
-              <ul className='flex relative pl-8 flex-row gap-4 overflow-x-scroll no-scrollbar lg:overflow-hidden' ref={listRef}>
-
-                <DishList dishs={dishs} category={category} isAdmin={isAdmin} api={api} decreaseQuantity={decreaseQuantity} increaseQuantity={increaseQuantity} quantities={quantities} handleAddToCart={handleAddToCart}></DishList>
-                
-                <div className='hidden lg:flex items-center justify-end h-96 w-18 bg-gradient-to-l from-Dark400 to-transparent absolute top-0 right-0'>
-                  <PiCaretRightBold className='w-7 h-6 cursor-pointer' onClick={scrollRight} />
+              <div className='relative'>
+                <ul
+                  className='flex pl-8 flex-row gap-4 overflow-x-scroll no-scrollbar lg:overflow-hidden'
+                  ref={el => listRefs.current[index] = el}
+                >
+                  <DishList
+                    dishs={dishs}
+                    category={category}
+                    isAdmin={isAdmin}
+                    api={api}
+                    decreaseQuantity={decreaseQuantity}
+                    increaseQuantity={increaseQuantity}
+                    quantities={quantities}
+                    handleAddToCart={handleAddToCart}
+                  />
+                </ul>
+                <div className='hidden lg:flex items-center justify-end h-full w-18 bg-gradient-to-l from-Dark400 to-transparent absolute top-0 right-0'>
+                  <PiCaretRightBold className='w-7 h-6 cursor-pointer' onClick={() => scrollRight(index)} />
                 </div>
-                <div className='hidden lg:flex items-center h-96 w-18 bg-gradient-to-r from-Dark400 to-transparent absolute top-0 left-8'>
-                  <PiCaretLeftBold className='w-7 h-6 cursor-pointer' onClick={scrollLeft} />
+                <div className='hidden lg:flex items-center h-full w-18 bg-gradient-to-r from-Dark400 to-transparent absolute top-0 left-0'>
+                  <PiCaretLeftBold className='w-7 h-6 cursor-pointer' onClick={() => scrollLeft(index)} />
                 </div>
-              </ul>
+              </div>
             </main>
           ))
         ) : (
-          <div className='flex items-center justify-center my-16 gap-4 '>
+          <div className='flex items-center justify-center my-16 gap-4'>
             <img className='opacity-40' src={explore} alt="" />
-            <p className="text-center text-lg font-roboto font-semibold text-Light700 opacity-50 ">Sem pratos cadastrados</p>
+            <p className="text-center text-lg font-roboto font-semibold text-Light700 opacity-50">Sem pratos cadastrados</p>
           </div>
         )}
       </div>
