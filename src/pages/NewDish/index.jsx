@@ -176,7 +176,7 @@ export function NewDish() {
             <div className="w-full lg:w-1/3 ">
               <label className='text-xs lg:text-sm'>Preço</label>
               <input
-                type="text"
+                type="number"
                 className="p-[15px] rounded w-full mt-[7px] bg-Dark800 placeholder:text-xs lg:placeholder:text-base rounded-lg"
                 placeholder="R$ 00.00"
                 onChange={e => setPrice(e.target.value)}

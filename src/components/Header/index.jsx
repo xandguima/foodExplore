@@ -123,7 +123,7 @@ export function Header({ isAdmin, onSearch = () => { }, ...rest }) {
           isAdmin ?
             <CustomButton
               className={`${isAdmin ? "py-3" : ""} poppins-regular text-xs rounded`}
-              title={"Novo Pedido"}
+              title={"Novo Prato"}
               onClick={handleNavegateToNewDish}
             /> :
             <CustomButton
