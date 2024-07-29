@@ -73,13 +73,12 @@ export function EditDish() {
 
     try {
 
-      await api.put(`/dish/${id}`, { name, description, price, categoryDish })
+      await api.put(`/dish/${id}`, { name, description, price, category:categoryDish })
 
       await api.delete(`/ingredient/${id}`)
 
       await api.post(`/ingredient/${id}`, { ingredients })
 
-      console.log("image", image)
       if (image) {
         const fileUploadForm = new FormData();
         fileUploadForm.append("imgDish", image);
@@ -94,9 +93,6 @@ export function EditDish() {
       setPrice('');
       setIngredients([]);
       setImage('');
-
-
-
 
     } catch (error) {
       console.log(error);
