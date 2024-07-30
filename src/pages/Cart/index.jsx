@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../service/api";
 import { useNavigate } from "react-router-dom";
 import qrcode from '../../assets/qrcode.png';
+import { PiCheckCircleLight } from "react-icons/pi";
 
 export function Cart() {
   const { user } = useAuth();
@@ -15,11 +16,24 @@ export function Cart() {
 
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState('pix');
+  const [orderCompleted, setOrderCompleted] = useState(false);
+  const [numberCard, setNumberCard] = useState('');
+  const [validityCard, setValidityCard] = useState('');
+  const [cvcCard, setCvcCard] = useState('');
 
   function removeItem(item) {
     const updatedCart = cart.filter((i) => i.id !== item.id);
     setCart(updatedCart);
     localStorage.setItem('@FoodExplorer:cart', JSON.stringify(updatedCart));
+  }
+  function handleFinishOrder() {
+    if (numberCard === '' || validityCard === '' || cvcCard === '') {
+      alert('Preencha todos os dados do cartaão');
+      return;
+    }
+
+    localStorage.removeItem('@FoodExplorer:cart');
+    setOrderCompleted(true);
   }
 
   useEffect(() => {
@@ -57,19 +71,18 @@ export function Cart() {
                           <p className="text-white text-sm">{item.name}</p>
                           <p className="text-Tomato200 text-xs cursor-pointer" onClick={() => removeItem(item)}>Remover item</p>
                         </div>
-                        <p className="text-white text-sm">R$ {item.price*item.quantity}</p>
+                        <p className="text-white text-sm">R$ {item.price * item.quantity}</p>
                       </li>
                     );
                   })}
                 </ul>
                 <p className="text-white text-lg mt-3 ml-6">Total: R$ {cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</p>
+                <div className="mt-6 flex justify-end mb-5">
+                  <CustomButton className="hover:bg-Tomato300 w-44 lg:hidden" title="Avançar" onClick={() => { navigate("/orders/payment") }} />
+                </div>
               </>
             )}
-            {cart.length > 0 && (
-              <div className="mt-6 flex justify-end mb-5">
-                <CustomButton className="hover:bg-Tomato300 w-44 lg:hidden" title="Avançar" onClick={() => { navigate("/orders/payment") }} />
-              </div>
-            )}
+
           </section>
         </div>
 
@@ -99,35 +112,49 @@ export function Cart() {
             )}
 
             {activeTab === 'credito' && (
-              <div className="flex flex-col gap-4 p-4 pb-8 w-full">
-                <div className="w-full">
-                  <label className="block text-xs font-medium text-white xs:text-sm">Número do Cartão</label>
-                  <input
-                    type="number"
-                    className="mt-1 text-xs block w-full px-3 py-2 border-2 bg-transparent border-Light600 rounded-md shadow-sm focus:outline-none focus:ring-Light600 focus:border-Light600 xs:text-sm"
-                    placeholder="1234 5678 9012 3456"
+              !orderCompleted ? (
+                <div className="flex flex-col gap-4 p-4 pb-8 w-full">
+                  <div className="w-full">
+                    <label className="block text-xs font-medium text-white xs:text-sm">Número do Cartão</label>
+                    <input
+                      type="number"
+                      className="mt-1 text-xs block w-full px-3 py-2 border-2 bg-transparent border-Light600 rounded-md shadow-sm focus:outline-none focus:ring-Light600 focus:border-Light600 xs:text-sm"
+                      placeholder="1234 5678 9012 3456"
+                      onChange={(e) => setNumberCard(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-4 w-full mb-4">
+                    <div className="w-1/2">
+                      <label className="block text-xs font-medium text-white xs:text-sm">Validade</label>
+                      <input
+                        type="number"
+                        className="mt-1 block w-full text-xs px-3 py-2 border-2 bg-transparent border-Light600 rounded-md shadow-sm focus:outline-none focus:ring-Light600 focus:border-Light600 xs:text-sm"
+                        placeholder="MM/AA"
+                        onChange={(e) => setValidityCard(e.target.value)}
+                      />
+                    </div>
+                    <div className="w-1/2">
+                      <label className="block text-xs font-medium text-white xs:text-sm">CVC</label>
+                      <input
+                        type="number"
+                        className="text-xs mt-1 block w-full px-3 py-2 border-2 bg-transparent border-Light600 rounded-md shadow-sm focus:outline-none focus:ring-Light600 focus:border-Light600 xs:text-sm"
+                        placeholder="123"
+                        onChange={(e) => setCvcCard(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <CustomButton
+                    title="Finalizar pagamento"
+                    className="w-full mt-4"
+                    onClick={handleFinishOrder}
                   />
                 </div>
-                <div className="flex gap-4 w-full mb-4">
-                  <div className="w-1/2">
-                    <label className="block text-xs font-medium text-white xs:text-sm">Validade</label>
-                    <input
-                      type="number"
-                      className="mt-1 block w-full text-xs px-3 py-2 border-2 bg-transparent border-Light600 rounded-md shadow-sm focus:outline-none focus:ring-Light600 focus:border-Light600 xs:text-sm"
-                      placeholder="MM/AA"
-                    />
-                  </div>
-                  <div className="w-1/2">
-                    <label className="block text-xs font-medium text-white xs:text-sm">CVC</label>
-                    <input
-                      type="number"
-                      className="text-xs mt-1 block w-full px-3 py-2 border-2 bg-transparent border-Light600 rounded-md shadow-sm focus:outline-none focus:ring-Light600 focus:border-Light600 xs:text-sm"
-                      placeholder="123"
-                    />
-                  </div>
+              ) : (
+                <div className="flex flex-col justify-center items-center h-64 gap-2">
+                  <PiCheckCircleLight className="w-16 h-16 text-green-500" />
+                  <p className="text-white text-lg">Pedido Finalizado</p>
                 </div>
-                <CustomButton title="Finalizar pagamento" className="w-full mt-4 " />
-              </div>
+              )
             )}
           </div>
         )}
