@@ -2,7 +2,7 @@ import { Home } from '../pages/Home'
 import { Preview } from '../pages/Preview'
 import { NewDish } from '../pages/NewDish'
 import {EditDish} from '../pages/EditDish'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes,Navigate } from 'react-router-dom'
 
 
 export function AdminRoutes() {
@@ -12,7 +12,7 @@ export function AdminRoutes() {
       <Route path="/preview/:id" element={<Preview />} />
       <Route path="/new-dish" element={<NewDish />} />
       <Route path="/edit-dish/:id" element={<EditDish />} />
-      <Route path="*" element={<Home />} />
+      <Route path='*' element={<Navigate to='/'/>}/>
     </Routes>
   )
 }
