@@ -127,8 +127,6 @@ export function EditDish() {
     const file = event.target.files[0];
     setImage(file);
 
-    //const imagePreview = URL.createObjectURL(file);
-    //setAvatar(imagePreview)
   };
 
 
@@ -137,7 +135,7 @@ export function EditDish() {
       <Header isAdmin={isAdmin} />
       <div className="flex-grow px-4 pt-6 mb-10">
         <a className="text-sm lg:text-base" href="/">&lt; Voltar </a>
-        <h1 className="text-2xl font-semibold my-4">Novo Prato</h1>
+        <h1 className="text-2xl font-semibold my-4">Edição do Prato</h1>
 
         <div className="flex flex-col space-y-4 lg:space-y-4 px-4">
           <div className="flex flex-col lg:flex-row lg:space-x-4 lg:items-center ">

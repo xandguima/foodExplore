@@ -1,3 +1,4 @@
+import { BiCookie } from 'react-icons/bi';
 import { api } from '../service/api';
 import React, { createContext, useContext, useEffect, useState } from "react";
 
@@ -9,15 +10,14 @@ function AuthProvider({ children }) {
 
   async function signIn({ email, password }) {
     try {
-      const response = await api.post("/session", { email, password });
-      
-      const { user, token } = response.data
+      const response = await api.post("/session", { email, password },{
+        withCredentials: true
+      });  
+      const { user } = response.data
 
       localStorage.setItem("@FoodExplorer:user", JSON.stringify(user));
-      localStorage.setItem("@FoodExplorer:token", token);
-
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setData({ user, token })
+      
+      setData({ user })
 
     } catch (error) {
       if (error.response) {
@@ -29,8 +29,8 @@ function AuthProvider({ children }) {
   }
 
   function signOut() {
+    api.delete("/session");
     localStorage.removeItem("@FoodExplorer:user");
-    localStorage.removeItem("@FoodExplorer:token");
     localStorage.removeItem("@FoodExplorer:cart");
     setData({});
   }
@@ -38,14 +38,11 @@ function AuthProvider({ children }) {
 
   useEffect(() => {
     const user = localStorage.getItem("@FoodExplorer:user");
-    const token = localStorage.getItem("@FoodExplorer:token");
 
-    if (token && user) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    if ( user) {
       
       setData({
         user: JSON.parse(user),
-        token
       })
     }
   }, []);
