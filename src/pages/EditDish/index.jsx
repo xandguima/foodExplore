@@ -151,7 +151,7 @@ export function EditDish() {
                         : <PiUploadSimpleBold className="w-7 h-7" onClick={handleIconClick} />
                     }
                     <p className='text-sm'>Selecione imagem</p>
-                    <PiXBold className='absolute right-5 w-5 h-5 text-Tomato200' onClick={() => setImage('')} />
+                    
                   </div>
                   <input type="file" name="" id="" className='hidden' ref={fileInputRef} onChange={handleChangeImageDish} />
                 </label>
