@@ -1,6 +1,7 @@
 # FoodExplorer Front
 
 Este é um projeto foi promovido como desafio final para a trilha explore da RocketSeat frontend desenvolvido com JavaScript, React, Vite e Tailwind CSS. Ele fornece a interface do FoodExplorer
+
 ## Requisitos
 
 - Node.js (v14 ou superior)
@@ -34,7 +35,6 @@ Para iniciar o projeto, use o comando:
     npm start
     ```
 
-
 ## Tecnologias Utilizadas
 
 - **React**: Biblioteca JavaScript para construção de interfaces de usuário.
@@ -62,3 +62,7 @@ Compila a aplicação para produção na pasta `dist`.
     ```
 
 Serve a versão compilada do projeto na pasta `dist`.
+
+## Deploy
+
+O projeto está disponível em [FoodExplorer Frontend](https://foodexplorerocketseat.netlify.app/)
