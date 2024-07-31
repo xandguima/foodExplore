@@ -12,7 +12,9 @@ export function Routes(){
   useEffect(() => {
     async function verifyUser(){
       await api.get('/user/validated').catch((error) => {
-       signOut();
+        if(error.response.status === 401){
+          signOut();
+        }
       })    
     }
     verifyUser()
